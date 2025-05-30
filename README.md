@@ -1,2 +1,0 @@
-# Jedi-vow
-Jedi vow
