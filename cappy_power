@@ -1,1 +1,44 @@
-cappy
+1) всегда должна быть цель - это поможет не только в учебе
+2) парсинг цены товара 
+3) как это сделать максимально просто и быстро c помощью нейросети
+4) софт (https://code.visualstudio.com/)
+5) 
+
+{Создайте в папке Dev (она уже есть на вашем компьютере) отдельную директорию jump_into_django
+
+Linux/macOS: python3 -m venv venv
+Windows: python -m venv venv или py -3 -m venv venv
+
+Активируйте виртуальное окружение: из директории Dev/jump_into_django выполните команду:
+Linux/macOS: source venv/bin/activate
+Windows: source venv/Scripts/activate.
+
+Обновите пакетный менеджер:
+Linux/macOS: python3 -m pip install --upgrade pip
+Windows: python -m pip install --upgrade pip.
+
+В активированном виртуальном окружении разверните фреймворк Django: 
+pip install Django
+
+Создайте Django-проект командой: django-admin startproject cappy
+(название любое , для старта пусть будет cappy).
+
+python manage.py runserver # В Windows
+python3 manage.py runserver # В Linux/macOS.
+
+python manage.py migrate 
+
+
+# Вызываем управляющий файл manage.py;
+# startapp catalog — команда «создать приложение с именем cappy_power».
+python manage.py startapp new_catalog 
+
+}
+
+6)найти нужную цену и через страницу разработчика впоймать цель
+
+7) дать задание ии создать код - чтобы бот парсил цену 
+выберем deep seek
+
+помогите написать бота (токен и id пока произвольно)- чтобы он мониторил цену и сообщал мне про ее изменение 
+
