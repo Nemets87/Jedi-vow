@@ -1,0 +1,145 @@
+Отличный план! Давайте создадим бота для мониторинга цен. Вот пошаговое решение:
+
+### 1. Установка необходимых библиотек
+```bash
+pip install requests beautifulsoup4 python-telegram-bot
+```
+
+### 2. Код бота (price_monitor.py)
+```python
+import requests
+from bs4 import BeautifulSoup
+import time
+from telegram import Bot
+import re
+
+# Конфигурация
+TELEGRAM_TOKEN = "ВАШ_TELEGRAM_BOT_TOKEN"
+CHAT_ID = "ВАШ_CHAT_ID"
+PRODUCT_URL = "ССЫЛКА_НА_ТОВАР"
+CHECK_INTERVAL = 600  # секунд (10 минут)
+
+# CSS-селектор для цены (укажите свой)
+PRICE_SELECTOR = "span.product-price"  # Пример для Wildberries: "span.price-block__final-price"
+
+def get_current_price():
+    """Парсим текущую цену с сайта"""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    try:
+        response = requests.get(PRODUCT_URL, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Ищем элемент с ценой
+        price_element = soup.select_one(PRICE_SELECTOR)
+        if not price_element:
+            return None
+        
+        # Извлекаем числовое значение цены
+        price_text = price_element.get_text().strip()
+        price_value = re.search(r'[\d\s,]+', price_text).group().replace(' ', '').replace(',', '.')
+        
+        return float(price_value)
+    
+    except Exception as e:
+        print(f"Ошибка парсинга: {e}")
+        return None
+
+def main():
+    bot = Bot(token=TELEGRAM_TOKEN)
+    last_price = None
+    
+    while True:
+        current_price = get_current_price()
+        
+        if current_price:
+            print(f"{time.ctime()} | Текущая цена: {current_price}")
+            
+            if last_price is None:
+                message = f"🚀 Начал отслеживание цены!\nТекущая цена: {current_price} руб.\nСсылка: {PRODUCT_URL}"
+                bot.send_message(chat_id=CHAT_ID, text=message)
+                last_price = current_price
+                
+            elif current_price != last_price:
+                message = f"🔔 Цена изменилась!\nБыло: {last_price} руб.\nСтало: {current_price} руб.\nРазница: {current_price - last_price:.2f} руб.\nСсылка: {PRODUCT_URL}"
+                bot.send_message(chat_id=CHAT_ID, text=message)
+                last_price = current_price
+        
+        time.sleep(CHECK_INTERVAL)
+
+if __name__ == "__main__":
+    main()
+```
+
+### 3. Как получить данные:
+1. **Telegram Bot Token**:  
+   - Напишите @BotFather в Telegram
+   - Команда: `/newbot`
+   - Скопируйте полученный токен
+
+2. **Chat ID**:
+   - Напишите @userinfobot в Telegram
+   - Скопируйте ваш Chat ID
+
+3. **CSS-селектор для цены**:
+   - Откройте страницу товара в браузере
+   - Нажмите F12 (Инструменты разработчика)
+   - Выберите элемент цены
+   - Скопируйте CSS-селектор (пример для Wildberries):
+   ```css
+   span.price-block__final-price
+   ```
+
+### 4. Запуск бота
+```bash
+python price_monitor.py
+```
+
+### 5. Особенности работы:
+- Проверяет цену каждые 10 минут
+- При изменении цены отправляет уведомление в Telegram
+- Автоматически извлекает числовое значение из текста
+- Поддерживает русские разделители (пробелы и запятые)
+
+### 6. Для динамических сайтов (если не работает):
+Если сайт использует JavaScript для подгрузки цен:
+1. Установите Selenium:
+```bash
+pip install selenium webdriver-manager
+```
+2. Модифицируйте функцию `get_current_price()`:
+```python
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
+
+def get_current_price():
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    
+    try:
+        driver.get(PRODUCT_URL)
+        time.sleep(3)  # Ожидаем загрузки JS
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        # Дальше парсинг как в примере выше
+    finally:
+        driver.quit()
+```
+
+### Советы:
+1. Настройте интервал проверки (для разных сайтов разные требования)
+2. Добавьте обработку ошибок подключения
+3. Для сложных случаев используйте API парсеров (например, ScrapingBee)
+4. Храните историю цен в CSV-файле:
+```python
+import csv
+
+def save_price(price):
+    with open('price_history.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow([time.strftime("%Y-%m-%d %H:%M"), price])
+```
+
+Этот бот будет надежно отслеживать изменения цен и уведомлять вас в Telegram! Для старта достаточно заменить 3 значения в конфигурации.
